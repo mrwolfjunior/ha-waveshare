@@ -6,6 +6,7 @@ OptionsFlow:  manages the list of virtual devices (lights and covers).
 """
 from __future__ import annotations
 
+import copy
 import uuid
 from typing import Any
 
@@ -133,7 +134,10 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
         self._config_entry = config_entry
         # Work on a mutable copy
         self._options: dict[str, Any] = dict(config_entry.options)
-        self._options.setdefault(CONF_DEVICES, [])
+        if CONF_DEVICES not in self._options:
+            self._options[CONF_DEVICES] = []
+        else:
+            self._options[CONF_DEVICES] = copy.deepcopy(self._options[CONF_DEVICES])
         self._editing_id: str | None = None
 
     # ------------------------------------------------------------------

@@ -1,7 +1,7 @@
 {
   "domain": "waveshare_relay",
   "name": "Waveshare Relay",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "config_flow": true,
   "dependencies": [],
   "codeowners": ["@mrwolfjunior"],
