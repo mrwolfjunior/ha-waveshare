@@ -132,15 +132,18 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
         """Send open pulse."""
         _LOGGER.debug("Opening cover %s (relay %d, %dms)", self._cfg[CONF_DEVICE_NAME], self._relay_open, self._pulse_ms)
         await self.coordinator.async_flash_on(self._relay_open, self._pulse_ms)
+        self.async_write_ha_state()
 
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Send close pulse."""
         _LOGGER.debug("Closing cover %s (relay %d, %dms)", self._cfg[CONF_DEVICE_NAME], self._relay_close, self._pulse_ms)
         await self.coordinator.async_flash_on(self._relay_close, self._pulse_ms)
+        self.async_write_ha_state()
 
     async def async_stop_cover(self, **kwargs: Any) -> None:
         """Stop is not supported by the relay hardware — no-op."""
         _LOGGER.debug("Stop requested for %s — relay hardware has no stop command", self._cfg[CONF_DEVICE_NAME])
+        self.async_write_ha_state()
 
     async def async_set_cover_tilt_position(self, **kwargs: Any) -> None:
         """Open or close slats with a long pulse based on tilt value.
@@ -162,11 +165,14 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
                 tilt,
                 self._cfg[CONF_DEVICE_NAME],
             )
+        self.async_write_ha_state()
 
     async def async_open_cover_tilt(self, **kwargs: Any) -> None:
         """Open cover tilt (long open pulse)."""
         await self.async_set_cover_tilt_position(tilt_position=100)
+        self.async_write_ha_state()
 
     async def async_close_cover_tilt(self, **kwargs: Any) -> None:
         """Close cover tilt (long close pulse)."""
         await self.async_set_cover_tilt_position(tilt_position=0)
+        self.async_write_ha_state()
