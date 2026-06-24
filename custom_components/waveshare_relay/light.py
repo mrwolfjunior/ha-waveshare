@@ -9,6 +9,7 @@ Turn on/off logic: check current state first, pulse only if needed.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.config_entries import ConfigEntry
@@ -91,13 +92,8 @@ class WaveshareLight(CoordinatorEntity[WaveshareCoordinator], LightEntity):
             name=self._cfg[CONF_DEVICE_NAME],
             manufacturer="Waveshare",
             model="Relay 32CH (Light)",
-            via_device=(DOMAIN, entry_hub_identifier(self._entry)),
+            via_device=(DOMAIN, f"hub_{self._entry.entry_id}"),
         )
-
-
-def entry_hub_identifier(entry: ConfigEntry) -> str:
-    """Stable identifier for the bridge hub device."""
-    return f"hub_{entry.entry_id}"
 
     @property
     def is_on(self) -> bool:
@@ -106,7 +102,7 @@ def entry_hub_identifier(entry: ConfigEntry) -> str:
             self._sensor_slave, self._sensor_register
         )
 
-    async def async_turn_on(self, **kwargs: object) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on: pulse relay only if light is currently OFF."""
         if not self.is_on:
             await self.coordinator.async_flash_on(self._relay_index, self._pulse_ms)
@@ -114,7 +110,7 @@ def entry_hub_identifier(entry: ConfigEntry) -> str:
         else:
             _LOGGER.debug("%s already ON — skipping pulse", self.name)
 
-    async def async_turn_off(self, **kwargs: object) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off: pulse relay only if light is currently ON."""
         if self.is_on:
             await self.coordinator.async_flash_on(self._relay_index, self._pulse_ms)
