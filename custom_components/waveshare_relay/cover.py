@@ -59,6 +59,10 @@ async def async_setup_entry(
         for dev in devices
         if dev.get(CONF_DEVICE_TYPE) == DEVICE_TYPE_COVER
     ]
+    hass.components.persistent_notification.async_create(
+        f"Waveshare Cover Debug: Found {len(entities)} cover devices out of {len(devices)} total devices.",
+        title="Waveshare Setup",
+    )
     async_add_entities(entities)
 
 
