@@ -60,6 +60,7 @@ class WaveshareLight(CoordinatorEntity[WaveshareCoordinator], LightEntity):
 
     _attr_has_entity_name = True
     _attr_should_poll = False
+    _attr_name = None  # Single entity per device: use the device name directly
     # Required by HA: declare that this is a simple on/off light (no color/brightness)
     _attr_color_mode = ColorMode.ONOFF
     _attr_supported_color_modes = {ColorMode.ONOFF}
@@ -83,7 +84,6 @@ class WaveshareLight(CoordinatorEntity[WaveshareCoordinator], LightEntity):
         self._pulse_ms: int = device_cfg.get(CONF_PULSE_MS, DEFAULT_PULSE_MS)
 
         self._attr_unique_id = f"{entry.entry_id}_{self._device_id}"
-        self._attr_name = device_cfg[CONF_DEVICE_NAME]
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -108,7 +108,7 @@ class WaveshareLight(CoordinatorEntity[WaveshareCoordinator], LightEntity):
             await self.coordinator.async_flash_on(self._relay_index, self._pulse_ms)
             await self.coordinator.async_request_refresh()
         else:
-            _LOGGER.debug("%s already ON — skipping pulse", self.name)
+            _LOGGER.debug("%s already ON — skipping pulse", self._cfg[CONF_DEVICE_NAME])
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off: pulse relay only if light is currently ON."""
@@ -116,4 +116,4 @@ class WaveshareLight(CoordinatorEntity[WaveshareCoordinator], LightEntity):
             await self.coordinator.async_flash_on(self._relay_index, self._pulse_ms)
             await self.coordinator.async_request_refresh()
         else:
-            _LOGGER.debug("%s already OFF — skipping pulse", self.name)
+            _LOGGER.debug("%s already OFF — skipping pulse", self._cfg[CONF_DEVICE_NAME])

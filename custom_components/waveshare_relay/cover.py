@@ -13,6 +13,7 @@ Tilt action sends a longer pulse to fully open/close slats.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.components.cover import (
     CoverDeviceClass,
@@ -64,15 +65,11 @@ async def async_setup_entry(
 class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
     """Represents a motorised blind/shutter controlled by two relay pulses."""
 
+    # We use properties below instead of _attr_* to avoid any HA metaclass conflicts
     _attr_has_entity_name = True
     _attr_should_poll = False
+    _attr_name = None  # Single entity per device: use the device name directly
     _attr_device_class = CoverDeviceClass.BLIND
-
-    # Position reported as fixed 50 so HA always shows open/close arrows.
-    # Real position is unknown (physical remotes can change it).
-    _attr_current_cover_position = 50
-    _attr_current_cover_tilt_position = 50
-    _attr_is_closed = None  # Unknown
 
     _attr_supported_features = (
         CoverEntityFeature.OPEN
@@ -97,7 +94,6 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
         self._tilt_ms: int = device_cfg.get(CONF_TILT_MS, DEFAULT_TILT_MS)
 
         self._attr_unique_id = f"{entry.entry_id}_{self._device_id}"
-        self._attr_name = device_cfg[CONF_DEVICE_NAME]
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -109,25 +105,39 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
             via_device=(DOMAIN, f"hub_{self._entry.entry_id}"),
         )
 
+    @property
+    def current_cover_position(self) -> int | None:
+        """Position reported as fixed 50 so HA always shows open/close arrows."""
+        return 50
+
+    @property
+    def current_cover_tilt_position(self) -> int | None:
+        return 50
+
+    @property
+    def is_closed(self) -> bool | None:
+        """Real position is unknown (physical remotes can change it)."""
+        return None
+
     # ------------------------------------------------------------------
     # Cover commands
     # ------------------------------------------------------------------
 
-    async def async_open_cover(self, **kwargs: object) -> None:
+    async def async_open_cover(self, **kwargs: Any) -> None:
         """Send open pulse."""
-        _LOGGER.debug("Opening cover %s (relay %d, %dms)", self.name, self._relay_open, self._pulse_ms)
+        _LOGGER.debug("Opening cover %s (relay %d, %dms)", self._cfg[CONF_DEVICE_NAME], self._relay_open, self._pulse_ms)
         await self.coordinator.async_flash_on(self._relay_open, self._pulse_ms)
 
-    async def async_close_cover(self, **kwargs: object) -> None:
+    async def async_close_cover(self, **kwargs: Any) -> None:
         """Send close pulse."""
-        _LOGGER.debug("Closing cover %s (relay %d, %dms)", self.name, self._relay_close, self._pulse_ms)
+        _LOGGER.debug("Closing cover %s (relay %d, %dms)", self._cfg[CONF_DEVICE_NAME], self._relay_close, self._pulse_ms)
         await self.coordinator.async_flash_on(self._relay_close, self._pulse_ms)
 
-    async def async_stop_cover(self, **kwargs: object) -> None:
+    async def async_stop_cover(self, **kwargs: Any) -> None:
         """Stop is not supported by the relay hardware — no-op."""
-        _LOGGER.debug("Stop requested for %s — relay hardware has no stop command", self.name)
+        _LOGGER.debug("Stop requested for %s — relay hardware has no stop command", self._cfg[CONF_DEVICE_NAME])
 
-    async def async_set_cover_tilt_position(self, **kwargs: object) -> None:
+    async def async_set_cover_tilt_position(self, **kwargs: Any) -> None:
         """Open or close slats with a long pulse based on tilt value.
 
         tilt_position == 0   → fully close slats (long close pulse)
@@ -136,14 +146,14 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
         """
         tilt: int = kwargs.get("tilt_position", 50)
         if tilt == 0:
-            _LOGGER.debug("Tilting closed %s (%dms)", self.name, self._tilt_ms)
+            _LOGGER.debug("Tilting closed %s (%dms)", self._cfg[CONF_DEVICE_NAME], self._tilt_ms)
             await self.coordinator.async_flash_on(self._relay_close, self._tilt_ms)
         elif tilt == 100:
-            _LOGGER.debug("Tilting open %s (%dms)", self.name, self._tilt_ms)
+            _LOGGER.debug("Tilting open %s (%dms)", self._cfg[CONF_DEVICE_NAME], self._tilt_ms)
             await self.coordinator.async_flash_on(self._relay_open, self._tilt_ms)
         else:
             _LOGGER.debug(
                 "Intermediate tilt %d requested for %s — only 0/100 supported",
                 tilt,
-                self.name,
+                self._cfg[CONF_DEVICE_NAME],
             )
