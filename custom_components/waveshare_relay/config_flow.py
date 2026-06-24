@@ -203,7 +203,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
                 CONF_PULSE_MS: int(user_input[CONF_PULSE_MS]),
             }
             self._options[CONF_DEVICES].append(device)
-            return await self.async_step_init()
+            return self.async_create_entry(title="", data=self._options)
 
         default_slave = self._config_entry.data.get(CONF_SLAVE_SENSOR, DEFAULT_SLAVE_SENSOR)
         schema = vol.Schema(
@@ -234,7 +234,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
                 CONF_TILT_MS: int(user_input[CONF_TILT_MS]),
             }
             self._options[CONF_DEVICES].append(device)
-            return await self.async_step_init()
+            return self.async_create_entry(title="", data=self._options)
 
         schema = vol.Schema(
             {
@@ -266,7 +266,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
                     d for d in devices if d[CONF_DEVICE_ID] != self._editing_id
                 ]
                 self._editing_id = None
-                return await self.async_step_init()
+                return self.async_create_entry(title="", data=self._options)
             # Edit — route to the right edit step
             device = next((d for d in devices if d[CONF_DEVICE_ID] == self._editing_id), None)
             if device and device[CONF_DEVICE_TYPE] == DEVICE_TYPE_LIGHT:
@@ -323,7 +323,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
                 }
             )
             self._editing_id = None
-            return await self.async_step_init()
+            return self.async_create_entry(title="", data=self._options)
 
         schema = vol.Schema(
             {
@@ -359,7 +359,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
                 }
             )
             self._editing_id = None
-            return await self.async_step_init()
+            return self.async_create_entry(title="", data=self._options)
 
         schema = vol.Schema(
             {
