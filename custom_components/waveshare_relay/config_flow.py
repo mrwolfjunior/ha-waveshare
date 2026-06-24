@@ -163,9 +163,8 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         if user_input is not None:
-            self._new_type = user_input[CONF_DEVICE_TYPE]
-            self._new_name = user_input[CONF_DEVICE_NAME]
-            if self._new_type == DEVICE_TYPE_LIGHT:
+            device_type = user_input[CONF_DEVICE_TYPE]
+            if device_type == DEVICE_TYPE_LIGHT:
                 return await self.async_step_add_light()
             return await self.async_step_add_cover()
 
@@ -180,7 +179,6 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
                         mode=SelectSelectorMode.LIST,
                     )
                 ),
-                vol.Required(CONF_DEVICE_NAME): _text_selector(),
             }
         )
         return self.async_show_form(step_id="add_device", data_schema=schema)
@@ -196,7 +194,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
             device = {
                 CONF_DEVICE_ID: str(uuid.uuid4()),
                 CONF_DEVICE_TYPE: DEVICE_TYPE_LIGHT,
-                CONF_DEVICE_NAME: self._new_name,
+                CONF_DEVICE_NAME: user_input[CONF_DEVICE_NAME],
                 CONF_RELAY_INDEX: int(user_input[CONF_RELAY_INDEX]),
                 CONF_SENSOR_SLAVE: int(user_input[CONF_SENSOR_SLAVE]),
                 CONF_SENSOR_REGISTER: int(user_input[CONF_SENSOR_REGISTER]),
@@ -208,6 +206,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
         default_slave = self._config_entry.data.get(CONF_SLAVE_SENSOR, DEFAULT_SLAVE_SENSOR)
         schema = vol.Schema(
             {
+                vol.Required(CONF_DEVICE_NAME): _text_selector(),
                 vol.Required(CONF_RELAY_INDEX): _int_selector(0, 31),
                 vol.Required(CONF_SENSOR_SLAVE, default=default_slave): _int_selector(1, 247),
                 vol.Required(CONF_SENSOR_REGISTER): _int_selector(0, 65535),
@@ -227,7 +226,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
             device = {
                 CONF_DEVICE_ID: str(uuid.uuid4()),
                 CONF_DEVICE_TYPE: DEVICE_TYPE_COVER,
-                CONF_DEVICE_NAME: self._new_name,
+                CONF_DEVICE_NAME: user_input[CONF_DEVICE_NAME],
                 CONF_RELAY_OPEN: int(user_input[CONF_RELAY_OPEN]),
                 CONF_RELAY_CLOSE: int(user_input[CONF_RELAY_CLOSE]),
                 CONF_PULSE_MS: int(user_input[CONF_PULSE_MS]),
@@ -238,6 +237,7 @@ class WaveshareOptionsFlow(config_entries.OptionsFlow):
 
         schema = vol.Schema(
             {
+                vol.Required(CONF_DEVICE_NAME): _text_selector(),
                 vol.Required(CONF_RELAY_OPEN): _int_selector(0, 31),
                 vol.Required(CONF_RELAY_CLOSE): _int_selector(0, 31),
                 vol.Required(CONF_PULSE_MS, default=DEFAULT_PULSE_MS): _int_selector(100, 32767 * 100),
