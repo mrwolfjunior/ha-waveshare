@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.light import LightEntity
+from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -59,6 +59,9 @@ class WaveshareLight(CoordinatorEntity[WaveshareCoordinator], LightEntity):
 
     _attr_has_entity_name = True
     _attr_should_poll = False
+    # Required by HA: declare that this is a simple on/off light (no color/brightness)
+    _attr_color_mode = ColorMode.ONOFF
+    _attr_supported_color_modes = {ColorMode.ONOFF}
 
     def __init__(
         self,
@@ -88,8 +91,13 @@ class WaveshareLight(CoordinatorEntity[WaveshareCoordinator], LightEntity):
             name=self._cfg[CONF_DEVICE_NAME],
             manufacturer="Waveshare",
             model="Relay 32CH (Light)",
-            via_device=(DOMAIN, self._entry.entry_id),
+            via_device=(DOMAIN, entry_hub_identifier(self._entry)),
         )
+
+
+def entry_hub_identifier(entry: ConfigEntry) -> str:
+    """Stable identifier for the bridge hub device."""
+    return f"hub_{entry.entry_id}"
 
     @property
     def is_on(self) -> bool:

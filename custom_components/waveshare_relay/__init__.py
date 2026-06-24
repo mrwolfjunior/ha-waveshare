@@ -12,13 +12,18 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 
-from .const import DOMAIN
+from .const import CONF_HOST, CONF_PORT, DOMAIN
 from .coordinator import WaveshareCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.LIGHT, Platform.COVER, Platform.BINARY_SENSOR]
+
+# Stable hub identifier = "hub_<entry_id>"
+def _hub_identifier(entry: ConfigEntry) -> str:
+    return f"hub_{entry.entry_id}"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -34,6 +39,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+
+    # Register the bridge as a hub device so via_device in child entities resolves correctly
+    registry = dr.async_get(hass)
+    registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, _hub_identifier(entry))},
+        name=f"Waveshare Bridge ({entry.data[CONF_HOST]}:{entry.data[CONF_PORT]})",
+        manufacturer="Waveshare",
+        model="Ethernet/RS485 Modbus Bridge",
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

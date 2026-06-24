@@ -106,7 +106,7 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
             name=self._cfg[CONF_DEVICE_NAME],
             manufacturer="Waveshare",
             model="Relay 32CH (Cover)",
-            via_device=(DOMAIN, self._entry.entry_id),
+            via_device=(DOMAIN, f"hub_{self._entry.entry_id}"),
         )
 
     # ------------------------------------------------------------------
