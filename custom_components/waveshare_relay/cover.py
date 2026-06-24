@@ -112,17 +112,18 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
 
     @property
     def current_cover_position(self) -> int | None:
-        """Position reported as fixed 50 so HA always shows open/close arrows."""
-        return 50
+        """Return None since we have no physical feedback. This keeps buttons active."""
+        return None
 
     @property
     def current_cover_tilt_position(self) -> int | None:
-        return 50
+        """Return None since we have no physical feedback."""
+        return None
 
     @property
     def is_closed(self) -> bool | None:
-        """Always return False (Open) so UI displays it cleanly and both arrows are active."""
-        return False
+        """Return None (unknown state) to force HA to keep both Open/Close arrows active."""
+        return None
 
     # ------------------------------------------------------------------
     # Cover commands
