@@ -19,7 +19,7 @@ from .coordinator import WaveshareCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.LIGHT, Platform.COVER, Platform.BINARY_SENSOR]
+PLATFORMS: list[Platform] = [Platform.LIGHT, Platform.COVER]
 
 # Stable hub identifier = "hub_<entry_id>"
 def _hub_identifier(entry: ConfigEntry) -> str:
