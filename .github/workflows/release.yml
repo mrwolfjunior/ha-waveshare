@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from manifest
+        id: version
+        run: |
+          VERSION=$(python3 -c "import json; d=json.load(open('custom_components/waveshare_relay/manifest.json')); print(d['version'])")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Zip custom_components for HACS
+        run: |
+          cd custom_components
+          zip -r ../waveshare_relay.zip waveshare_relay/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.version.outputs.version }}"
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            waveshare_relay.zip

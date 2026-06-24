@@ -1,0 +1,89 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Waveshare Relay — Configurazione Bridge",
+        "description": "Configura la connessione al bridge Ethernet/RS485.",
+        "data": {
+          "host": "Host (indirizzo IP)",
+          "port": "Porta",
+          "slave_relay": "Slave ID scheda relay",
+          "slave_sensor": "Slave ID scheda ingressi",
+          "scan_interval": "Intervallo di polling (secondi)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile connettersi al bridge. Controlla host, porta e rete."
+    },
+    "abort": {
+      "already_configured": "Questo bridge è già configurato."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Waveshare Relay — Dispositivi",
+        "description": "Gestisci luci e tapparelle.",
+        "menu_options": {
+          "add_device": "➕ Aggiungi un nuovo dispositivo",
+          "manage_devices": "✏️ Modifica / Elimina un dispositivo",
+          "save": "💾 Salva e chiudi"
+        }
+      },
+      "add_device": {
+        "title": "Nuovo Dispositivo — Tipo e Nome",
+        "data": {
+          "device_type": "Tipo di dispositivo",
+          "device_name": "Nome"
+        }
+      },
+      "add_light": {
+        "title": "Nuova Luce — Relay e Sensore",
+        "data": {
+          "relay_index": "Indice relay (0–31)",
+          "sensor_slave": "Slave ID scheda ingressi",
+          "sensor_register": "Indirizzo holding register (es. 128)",
+          "pulse_ms": "Durata impulso (ms)"
+        }
+      },
+      "add_cover": {
+        "title": "Nuova Tapparella — Relay e Tempi",
+        "data": {
+          "relay_open": "Relay apertura (0–31)",
+          "relay_close": "Relay chiusura (0–31)",
+          "pulse_ms": "Durata impulso (ms)",
+          "tilt_ms": "Durata impulso tilt (ms)"
+        }
+      },
+      "manage_devices": {
+        "title": "Gestione Dispositivi",
+        "description": "Seleziona un dispositivo da modificare o eliminare.",
+        "data": {
+          "id": "Dispositivo",
+          "action": "Azione"
+        }
+      },
+      "edit_light": {
+        "title": "Modifica Luce",
+        "data": {
+          "device_name": "Nome",
+          "relay_index": "Indice relay (0–31)",
+          "sensor_slave": "Slave ID scheda ingressi",
+          "sensor_register": "Indirizzo holding register",
+          "pulse_ms": "Durata impulso (ms)"
+        }
+      },
+      "edit_cover": {
+        "title": "Modifica Tapparella",
+        "data": {
+          "device_name": "Nome",
+          "relay_open": "Relay apertura (0–31)",
+          "relay_close": "Relay chiusura (0–31)",
+          "pulse_ms": "Durata impulso (ms)",
+          "tilt_ms": "Durata impulso tilt (ms)"
+        }
+      }
+    }
+  }
+}

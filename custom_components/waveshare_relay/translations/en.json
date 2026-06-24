@@ -1,0 +1,89 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Waveshare Relay — Bridge Configuration",
+        "description": "Configure the Ethernet/RS485 bridge connection.",
+        "data": {
+          "host": "Host (IP address)",
+          "port": "Port",
+          "slave_relay": "Relay board slave ID",
+          "slave_sensor": "Input board slave ID",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the bridge. Check host, port and network."
+    },
+    "abort": {
+      "already_configured": "This bridge is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Waveshare Relay — Devices",
+        "description": "Manage your lights and covers.",
+        "menu_options": {
+          "add_device": "➕ Add a new device",
+          "manage_devices": "✏️ Edit / Delete a device",
+          "save": "💾 Save and close"
+        }
+      },
+      "add_device": {
+        "title": "New Device — Type & Name",
+        "data": {
+          "device_type": "Device type",
+          "device_name": "Name"
+        }
+      },
+      "add_light": {
+        "title": "New Light — Relay & Sensor",
+        "data": {
+          "relay_index": "Relay index (0–31)",
+          "sensor_slave": "Input board slave ID",
+          "sensor_register": "Holding register address (e.g. 128)",
+          "pulse_ms": "Pulse duration (ms)"
+        }
+      },
+      "add_cover": {
+        "title": "New Cover — Relays & Timings",
+        "data": {
+          "relay_open": "Open relay index (0–31)",
+          "relay_close": "Close relay index (0–31)",
+          "pulse_ms": "Pulse duration (ms)",
+          "tilt_ms": "Tilt pulse duration (ms)"
+        }
+      },
+      "manage_devices": {
+        "title": "Manage Devices",
+        "description": "Select a device to edit or delete.",
+        "data": {
+          "id": "Device",
+          "action": "Action"
+        }
+      },
+      "edit_light": {
+        "title": "Edit Light",
+        "data": {
+          "device_name": "Name",
+          "relay_index": "Relay index (0–31)",
+          "sensor_slave": "Input board slave ID",
+          "sensor_register": "Holding register address",
+          "pulse_ms": "Pulse duration (ms)"
+        }
+      },
+      "edit_cover": {
+        "title": "Edit Cover",
+        "data": {
+          "device_name": "Name",
+          "relay_open": "Open relay index (0–31)",
+          "relay_close": "Close relay index (0–31)",
+          "pulse_ms": "Pulse duration (ms)",
+          "tilt_ms": "Tilt pulse duration (ms)"
+        }
+      }
+    }
+  }
+}

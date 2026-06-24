@@ -1,0 +1,12 @@
+{
+  "domain": "waveshare_relay",
+  "name": "Waveshare Relay",
+  "version": "1.0.0",
+  "config_flow": true,
+  "dependencies": [],
+  "codeowners": ["@mrwolfjunior"],
+  "requirements": [],
+  "iot_class": "local_polling",
+  "documentation": "https://github.com/mrwolfjunior/ha-waveshare",
+  "issue_tracker": "https://github.com/mrwolfjunior/ha-waveshare/issues"
+}
