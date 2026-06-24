@@ -119,8 +119,8 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
 
     @property
     def is_closed(self) -> bool | None:
-        """Real position is unknown (physical remotes can change it)."""
-        return None
+        """Always return False (Open) so UI displays it cleanly and both arrows are active."""
+        return False
 
     # ------------------------------------------------------------------
     # Cover commands
