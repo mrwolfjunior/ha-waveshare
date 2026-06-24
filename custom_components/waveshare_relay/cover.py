@@ -79,6 +79,8 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
         | CoverEntityFeature.CLOSE
         | CoverEntityFeature.STOP
         | CoverEntityFeature.SET_TILT_POSITION
+        | CoverEntityFeature.OPEN_TILT
+        | CoverEntityFeature.CLOSE_TILT
     )
 
     def __init__(
@@ -148,15 +150,23 @@ class WavshareCover(CoordinatorEntity[WaveshareCoordinator], CoverEntity):
         Any other value is ignored (no intermediate tilt supported).
         """
         tilt: int = kwargs.get("tilt_position", 50)
-        if tilt == 0:
-            _LOGGER.debug("Tilting closed %s (%dms)", self._cfg[CONF_DEVICE_NAME], self._tilt_ms)
-            await self.coordinator.async_flash_on(self._relay_close, self._tilt_ms)
-        elif tilt == 100:
-            _LOGGER.debug("Tilting open %s (%dms)", self._cfg[CONF_DEVICE_NAME], self._tilt_ms)
+        if tilt == 100:
+            _LOGGER.debug("Opening cover tilt %s (relay %d, %dms)", self._cfg[CONF_DEVICE_NAME], self._relay_open, self._tilt_ms)
             await self.coordinator.async_flash_on(self._relay_open, self._tilt_ms)
+        elif tilt == 0:
+            _LOGGER.debug("Closing cover tilt %s (relay %d, %dms)", self._cfg[CONF_DEVICE_NAME], self._relay_close, self._tilt_ms)
+            await self.coordinator.async_flash_on(self._relay_close, self._tilt_ms)
         else:
             _LOGGER.debug(
                 "Intermediate tilt %d requested for %s — only 0/100 supported",
                 tilt,
                 self._cfg[CONF_DEVICE_NAME],
             )
+
+    async def async_open_cover_tilt(self, **kwargs: Any) -> None:
+        """Open cover tilt (long open pulse)."""
+        await self.async_set_cover_tilt_position(tilt_position=100)
+
+    async def async_close_cover_tilt(self, **kwargs: Any) -> None:
+        """Close cover tilt (long close pulse)."""
+        await self.async_set_cover_tilt_position(tilt_position=0)
