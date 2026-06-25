@@ -5,6 +5,7 @@ board (slave 2, FC03 holding registers) on a configurable interval.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections import defaultdict
 from datetime import timedelta
@@ -53,6 +54,7 @@ class WaveshareCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry.data["host"],
             entry.data["port"],
         )
+        self._pulse_lock = asyncio.Lock()
 
     # ------------------------------------------------------------------
     # Poll
@@ -122,11 +124,19 @@ class WaveshareCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     # ------------------------------------------------------------------
 
     async def async_flash_on(self, relay_index: int, pulse_ms: int) -> bool:
-        """Send Flash ON command on slave_relay."""
-        return await self.client.flash_on(self._slave_relay, relay_index, pulse_ms)
+        """Send Flash ON command on slave_relay, strictly serializing pulses."""
+        async with self._pulse_lock:
+            result = await self.client.flash_on(self._slave_relay, relay_index, pulse_ms)
+            sleep_sec = max(1.0, (pulse_ms / 1000.0) + 0.5)
+            await asyncio.sleep(sleep_sec)
+            return result
 
     async def async_flash_on_slave(
         self, slave: int, relay_index: int, pulse_ms: int
     ) -> bool:
-        """Send Flash ON on an explicit slave (future use)."""
-        return await self.client.flash_on(slave, relay_index, pulse_ms)
+        """Send Flash ON on an explicit slave (future use), strictly serializing pulses."""
+        async with self._pulse_lock:
+            result = await self.client.flash_on(slave, relay_index, pulse_ms)
+            sleep_sec = max(1.0, (pulse_ms / 1000.0) + 0.5)
+            await asyncio.sleep(sleep_sec)
+            return result
