@@ -101,19 +101,28 @@ class WaveshareModbusClient:
                     await self._writer.drain()
                     
                     head = await asyncio.wait_for(
-                        self._reader.readexactly(2),
+                        self._reader.readexactly(3),
                         timeout=5,
                     )
                     
-                    if head[1] & 0x80:
-                        tail_len = 3
+                    fc = head[1]
+                    if fc & 0x80:
+                        tail_len = 2
+                    elif fc in (1, 2, 3, 4):
+                        tail_len = 2 + head[2]
+                    elif fc in (5, 6, 15, 16):
+                        tail_len = 5
                     else:
-                        tail_len = max(0, expected_len - 2)
+                        tail_len = max(0, expected_len - 3)
                         
-                    tail = await asyncio.wait_for(
-                        self._reader.readexactly(tail_len),
-                        timeout=5,
-                    )
+                    if tail_len > 0:
+                        tail = await asyncio.wait_for(
+                            self._reader.readexactly(tail_len),
+                            timeout=5,
+                        )
+                    else:
+                        tail = b""
+                        
                     return head + tail
                 except Exception as exc:  # noqa: BLE001
                     _LOGGER.warning(
