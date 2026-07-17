@@ -84,24 +84,15 @@ class WaveshareCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # --- FC03: read holding registers per slave ---
         for slave, reg_set in regs_by_slave.items():
-            sorted_regs = sorted(reg_set)
-            min_reg = sorted_regs[0]
-            max_reg = sorted_regs[-1]
-            count = max_reg - min_reg + 1
-
-            registers = await self.client.read_holding_registers(slave, min_reg, count)
-            if registers is not None:
-                if slave == 2:
-                    _LOGGER.error("RAW SENSOR DATA (FC03) from slave 2 (addr %d, count %d): %s", min_reg, count, registers)
-                for i, addr in enumerate(range(min_reg, min_reg + count)):
-                    if addr in reg_set and i < len(registers):
-                        # Non-zero value → input is active (ON)
-                        result["sensors"][(slave, addr)] = registers[i] != 0
-            else:
-                _LOGGER.warning(
-                    "Failed to read holding registers from slave %d (addr %d+%d)",
-                    slave, min_reg, count,
-                )
+            for reg in sorted(reg_set):
+                registers = await self.client.read_holding_registers(slave, reg, 1)
+                if registers is not None and len(registers) > 0:
+                    result["sensors"][(slave, reg)] = registers[0] != 0
+                else:
+                    _LOGGER.warning(
+                        "Failed to read holding register from slave %d (addr %d)",
+                        slave, reg,
+                    )
 
         return result
 
