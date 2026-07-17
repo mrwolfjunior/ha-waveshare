@@ -99,11 +99,22 @@ class WaveshareModbusClient:
                     await self._ensure_connected()
                     self._writer.write(frame)
                     await self._writer.drain()
-                    response = await asyncio.wait_for(
-                        self._reader.read(expected_len),
+                    
+                    head = await asyncio.wait_for(
+                        self._reader.readexactly(2),
                         timeout=5,
                     )
-                    return response
+                    
+                    if head[1] & 0x80:
+                        tail_len = 3
+                    else:
+                        tail_len = max(0, expected_len - 2)
+                        
+                    tail = await asyncio.wait_for(
+                        self._reader.readexactly(tail_len),
+                        timeout=5,
+                    )
+                    return head + tail
                 except Exception as exc:  # noqa: BLE001
                     _LOGGER.warning(
                         "Modbus error (attempt %d): %s", attempt + 1, exc
@@ -127,7 +138,7 @@ class WaveshareModbusClient:
         address = 0x0200 + (relay_index & 0x1F)
         frame = _build_fc05_frame(slave, address, duration)
         resp = await self._send_recv(frame, 8)
-        ok = resp is not None and len(resp) >= 6
+        ok = resp is not None and len(resp) >= 6 and not (resp[1] & 0x80)
         if not ok:
             _LOGGER.error("flash_on relay=%d failed", relay_index)
         return ok
@@ -141,7 +152,7 @@ class WaveshareModbusClient:
         address = 0x0400 + (relay_index & 0x1F)
         frame = _build_fc05_frame(slave, address, duration)
         resp = await self._send_recv(frame, 8)
-        ok = resp is not None and len(resp) >= 6
+        ok = resp is not None and len(resp) >= 6 and not (resp[1] & 0x80)
         if not ok:
             _LOGGER.error("flash_off relay=%d failed", relay_index)
         return ok
@@ -150,13 +161,13 @@ class WaveshareModbusClient:
         """FC05 — permanently turn relay ON."""
         frame = _build_fc05_frame(slave, relay_index & 0x1F, 0xFF00)
         resp = await self._send_recv(frame, 8)
-        return resp is not None and len(resp) >= 6
+        return resp is not None and len(resp) >= 6 and not (resp[1] & 0x80)
 
     async def relay_off(self, slave: int, relay_index: int) -> bool:
         """FC05 — permanently turn relay OFF."""
         frame = _build_fc05_frame(slave, relay_index & 0x1F, 0x0000)
         resp = await self._send_recv(frame, 8)
-        return resp is not None and len(resp) >= 6
+        return resp is not None and len(resp) >= 6 and not (resp[1] & 0x80)
 
     async def read_coils(
         self, slave: int, start: int, count: int
@@ -173,7 +184,7 @@ class WaveshareModbusClient:
         frame = payload + crc16_modbus(payload)
         byte_count = (count + 7) // 8
         resp = await self._send_recv(frame, 3 + byte_count + 2)
-        if resp is None or len(resp) < 3:
+        if resp is None or len(resp) < 3 or (resp[1] & 0x80):
             return None
         data_len = resp[2]
         data_bytes = resp[3: 3 + data_len]
@@ -198,7 +209,7 @@ class WaveshareModbusClient:
         ])
         frame = payload + crc16_modbus(payload)
         resp = await self._send_recv(frame, 3 + count * 2 + 2)
-        if resp is None or len(resp) < 3:
+        if resp is None or len(resp) < 3 or (resp[1] & 0x80):
             return None
         data_len = resp[2]
         data_bytes = resp[3: 3 + data_len]
@@ -225,4 +236,4 @@ class WaveshareModbusClient:
         ]) + bytes(coil_bytes)
         frame = payload + crc16_modbus(payload)
         resp = await self._send_recv(frame, 8)
-        return resp is not None and len(resp) >= 6
+        return resp is not None and len(resp) >= 6 and not (resp[1] & 0x80)
