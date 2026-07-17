@@ -91,6 +91,8 @@ class WaveshareCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             registers = await self.client.read_holding_registers(slave, min_reg, count)
             if registers is not None:
+                if slave == 2:
+                    _LOGGER.error("RAW SENSOR DATA (FC03) from slave 2 (addr %d, count %d): %s", min_reg, count, registers)
                 for i, addr in enumerate(range(min_reg, min_reg + count)):
                     if addr in reg_set and i < len(registers):
                         # Non-zero value → input is active (ON)
