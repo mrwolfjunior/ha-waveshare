@@ -204,6 +204,44 @@ class WaveshareModbusClient:
             result.append(bool(data_bytes[b] & (1 << bit)) if b < len(data_bytes) else False)
         return result
 
+    async def read_discrete_inputs(
+        self, slave: int, start: int, count: int
+    ) -> Optional[list[bool]]:
+        """Read discrete inputs (FC02). Returns a list of booleans."""
+        payload = bytes(
+            [
+                slave,
+                0x02,
+                (start >> 8) & 0xFF,
+                start & 0xFF,
+                (count >> 8) & 0xFF,
+                count & 0xFF,
+            ]
+        )
+        frame = payload + crc16_modbus(payload)
+
+        # FC02 response: Slave(1) + FC(1) + ByteCount(1) + Data(ByteCount) + CRC(2)
+        # We calculate the expected maximum length just to be safe, but _send_recv
+        # uses the ByteCount field dynamically anyway.
+        expected_len = 3 + ((count + 7) // 8) + 2
+
+        resp = await self._send_recv(frame, expected_len)
+        if resp is None or len(resp) < 3 or (resp[1] & 0x80):
+            return None
+
+        data_len = resp[2]
+        data_bytes = resp[3 : 3 + data_len]
+        
+        result: list[bool] = []
+        for i in range(count):
+            byte_idx = i // 8
+            bit_idx = i % 8
+            if byte_idx < len(data_bytes):
+                result.append(bool(data_bytes[byte_idx] & (1 << bit_idx)))
+            else:
+                result.append(False)
+        return result
+
     async def read_holding_registers(
         self, slave: int, start: int, count: int
     ) -> Optional[list[int]]:
