@@ -82,17 +82,25 @@ class WaveshareCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             _LOGGER.warning("Failed to read relay coils from slave %d", self._slave_relay)
 
-        # --- FC03: read holding registers per slave ---
+        # --- FC03: read holding registers per slave in blocks ---
         for slave, reg_set in regs_by_slave.items():
-            for reg in sorted(reg_set):
-                registers = await self.client.read_holding_registers(slave, reg, 1)
-                if registers is not None and len(registers) > 0:
-                    result["sensors"][(slave, reg)] = registers[0] != 0
-                else:
-                    _LOGGER.warning(
-                        "Failed to read holding register from slave %d (addr %d)",
-                        slave, reg,
-                    )
+            if not reg_set:
+                continue
+                
+            min_reg = min(reg_set)
+            max_reg = max(reg_set)
+            count = max_reg - min_reg + 1
+            
+            registers = await self.client.read_holding_registers(slave, min_reg, count)
+            if registers is not None and len(registers) == count:
+                for reg in reg_set:
+                    idx = reg - min_reg
+                    result["sensors"][(slave, reg)] = registers[idx] != 0
+            else:
+                _LOGGER.warning(
+                    "Failed to read holding registers block from slave %d (start %d, count %d)",
+                    slave, min_reg, count,
+                )
 
         return result
 
