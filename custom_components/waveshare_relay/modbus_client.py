@@ -125,8 +125,8 @@ class WaveshareModbusClient:
                         
                     return head + tail
                 except Exception as exc:  # noqa: BLE001
-                    _LOGGER.exception(
-                        "Modbus error (attempt %d): %r", attempt + 1, exc
+                    _LOGGER.warning(
+                        "Modbus error (attempt %d): %s", attempt + 1, exc
                     )
                     await self.disconnect()
                     if attempt == 1:
